@@ -1,0 +1,11 @@
+import casaPepeJulian.casa
+
+describe "La casa" {
+
+  test "Hacer que se rompa algo de 1000 pesos de la casa, aumentando el monto de reparación." {
+     casa.montoReparaciones(1000)
+     assert.that(casa.tieneViveres())
+     assert.that(casa.hayReparaciones())
+     assert.notThat(casa.estaEnOrden())
+  }
+}
