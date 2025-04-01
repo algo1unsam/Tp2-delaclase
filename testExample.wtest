@@ -1,11 +1,89 @@
-import casaPepeJulian.casa
+import casaPepeJulian.*
+
 
 describe "La casa" {
 
   test "Hacer que se rompa algo de 1000 pesos de la casa, aumentando el monto de reparación." {
-     casa.montoReparaciones(1000)
-     assert.that(casa.tieneViveres())
-     assert.that(casa.hayReparaciones())
-     assert.notThat(casa.estaEnOrden())
+    casa.montoReparacion(1000)
+    assert.that(casa.tieneViveresSuficientes())
+    assert.that(casa.necesitaReparaciones())
+    assert.notThat(casa.estaEnOrden())
   }
+
+test "para una cuenta vacía con 20 pesos de costo por operación, si se deposita 1000 pesos, el saldo queda en 980 pesos." {
+	// Preparo el test
+	cuentaConGasto.costoOperacion(20)
+	// Acción
+	cuentaConGasto.depositar(1000)
+	// Varificación 
+	assert.equals(980, cuentaConGasto.saldo())
 }
+
+//Cuenta combinada
+test "suponiendo que configuramos la cuenta combinada así: la primaria es la cuenta con gastos con 50 pesos de costo de operación y la secundaria es la cuenta corriente, ya con 500 pesos de saldo"{
+	cuentaCombinada.primaria(cuentaConGasto)
+	cuentaConGasto.costoOperacion(50)
+	cuentaCombinada.secundaria(cuentaCorriente)
+	cuentaCorriente.saldo(500)
+	cuentaCombinada.depositar(100)
+	cuentaCombinada.extraer(200)
+	assert.equals(cuentaCombinada.primaria().saldo(), 50)
+	assert.equals(cuentaCombinada.secundaria().saldo(),300 )
+	assert.equals(cuentaCombinada.saldo(),350 )
+}
+
+test "probar un gasto"{
+casa.cuenta(cuentaCorriente)
+cuentaCorriente.saldo(500)
+casa.montoReparacion(499)
+assert.equals(1, casa.cuenta().saldo())
+}
+
+test "La casa hace un gasto sobre la cuenta con gastos" {
+	cuentaConGasto.costoOperacion(500)
+	cuentaConGasto.depositar(5000)
+	assert.equals(4500, cuentaConGasto.saldo())
+	casa.asignarCuenta(cuentaConGasto)
+	casa.gastar(1000)
+	assert.equals(3500, cuentaConGasto.saldo())
+}
+
+test "Mantenimiento Full: Si la casa tiene 50% de los víveres, necesita 100 pesos para reparaciones y tiene asociada la cuenta corriente con 1000 pesos de saldo" {
+	casa.viveres(50)
+	casa.montoReparacion(100)
+	casa.estrategiaDeAhorro(full)
+	cuentaCorriente.saldo(1000)
+	assert.notThat(casa.estaEnOrden())
+	casa.cuenta(cuentaCorriente)
+	assert.that(casa.tieneViveresSuficientes())
+	casa.hacerMantenimiento()
+	assert.equals(casa.montoReparacion(), 100)  // Mantiene los 100 pesos de reparaciones pendientes.
+	assert.equals(800, casa.cuenta().saldo())  // La cuenta corriente queda con 800 pesos.
+	assert.equals(50 + 40, casa.viveres())	  // La casa queda con 90% de víveres.
+}
+
+test "Mantenimiento Mínimo: Si la casa tiene 30% de los víveres, debe comprar lo necesario hasta llegar a 40%" {
+    casa.viveres(30)  
+    casa.estrategiaDeAhorro(minimo)  
+    cuentaCorriente.saldo(1000)  
+    casa.cuenta(cuentaCorriente) 
+    assert.notThat(casa.tieneViveresSuficientes())  
+    casa.hacerMantenimiento()  
+    assert.that(casa.tieneViveresSuficientes())  // Ahora debería tener 40% o más
+    assert.equals(40, casa.viveres())  // Debe haberse ajustado a 40%
+    assert.equals(1000 - ((40 - 30) * 1), casa.cuenta().saldo())  // Se gasta lo necesario con calidad 0 (sin cambio de saldo)
+}
+
+test "Mantenimiento Mínimo: Si la casa ya tiene suficientes víveres, no debe gastar dinero" {
+    casa.viveres(50)  
+    casa.estrategiaDeAhorro(minimo)  
+    cuentaCorriente.saldo(1000)  
+    casa.cuenta(cuentaCorriente)  
+    assert.that(casa.tieneViveresSuficientes())  
+    casa.hacerMantenimiento()  
+    assert.equals(50, casa.viveres())  // No debería cambiar
+    assert.equals(1000, casa.cuenta().saldo())  // No debería gastar dinero
+}
+
+}
+
