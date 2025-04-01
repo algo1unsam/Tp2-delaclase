@@ -34,12 +34,6 @@ object casa {
     cuenta.extraer(valor)
   }
 
-  method comprarLoQueSeNecesita(calidad, valor) {
-    const compra = valorSuficiente - viveres + valor
-	    self.gastar(compra * calidad)
-      self.viveres(viveres + compra)
-  }
-
   method reparar(){
 		if((cuenta.saldo() > montoReparacion) and (cuenta.saldo() - montoReparacion) > 1000){
 			self.gastar(montoReparacion)			
